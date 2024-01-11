@@ -35,6 +35,7 @@ async function getRewards() {
         for (const reward of rewardsData) {
             if (reward.slug === 'topup' || reward.slug === 'grab' || reward.slug === 'shopee') {
                 if (parseInt(reward.description.match(/\d+/)[0]) !== 0) {
+                    console.log(reward.slug)
                     exec('node C:/Users/Admin/PhpstormProjects/BiaSaigon/Gifts.js', (error, stdout, stderr) => {
                         if (error) {
                             console.error(`Error executing the second script: ${error}`);
@@ -52,4 +53,4 @@ async function getRewards() {
 
 setInterval(() => {
     getRewards();
-}, 30 * 60 * 1000);
+}, 15 * 60 * 1000);
