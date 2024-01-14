@@ -21,6 +21,14 @@ async function loginAndGetToken() {
 }
 
 async function getRewards() {
+    var thoiGianHienTai = new Date();
+    var nam = thoiGianHienTai.getFullYear();
+    var thang = thoiGianHienTai.getMonth() + 1;
+    var ngay = thoiGianHienTai.getDate();
+    var gio = thoiGianHienTai.getHours();
+    var phut = thoiGianHienTai.getMinutes();
+    var giay = thoiGianHienTai.getSeconds();
+    console.log("Thời gian quét: " + gio + ":" + phut + ":" + giay + " " + ngay + "/" + thang + "/" + nam)
     const apiUrlRewards = 'https://dragongem.biasaigon.vn/sbar/api/get_rewards/';
 
     try {
@@ -32,19 +40,22 @@ async function getRewards() {
             }
         });
         const rewardsData = response.data.data;
+        let checkReward = false;
         for (const reward of rewardsData) {
-            if (reward.slug === 'topup' || reward.slug === 'grab' || reward.slug === 'shopee') {
-                if (parseInt(reward.description.match(/\d+/)[0]) !== 0) {
-                    console.log(reward.slug)
-                    exec('node C:/Users/Admin/PhpstormProjects/BiaSaigon/Gifts.js', (error, stdout, stderr) => {
-                        if (error) {
-                            console.error(`Error executing the second script: ${error}`);
-                            return;
-                        }
-                        console.log(`Output: ${stdout}`);
-                    });
-                }
+            if (reward.slug === 'grab' && parseInt(reward.description.match(/\d+/)[0]) !== 0) {
+                checkReward = true;
+            } else if (reward.slug === 'shopee' && parseInt(reward.description.match(/\d+/)[0]) !== 0) {
+                checkReward = true;
             }
+        }
+        if (checkReward) {
+            exec('node D:/BiaSaigon/GrabShopee.js', (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error executing the second script: ${error}`);
+                    return;
+                }
+                console.log(stdout);
+            });
         }
     } catch (error) {
         console.error('Get Rewards failed:', error);
@@ -53,4 +64,4 @@ async function getRewards() {
 
 setInterval(() => {
     getRewards();
-}, 15 * 60 * 1000);
+}, 5 * 60 * 1000);

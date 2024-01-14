@@ -20,17 +20,13 @@ fs.readFile(accountList, 'utf8', async (err, data) => {
                 const response = await axios.post(apiUrl, credentials);
                 const token = response.data.data.token;
                 await endSinglePlayGame("JWT " + token, account.id);
-                const accountIndex = jsonDataAccount.findIndex(acc => acc.id === account.id);
-                if (accountIndex !== -1) {
-                    jsonDataAccount[accountIndex].token = token;
-                }
             } catch (error) {
                 console.error(error);
             }
         }
 
         async function endSinglePlayGame(tokenJWT, accountId) {
-            const apiUrl = 'https://dragongem.biasaigon.vn/sbar/api/end_single_play_game/';
+            const apiGame = 'https://dragongem.biasaigon.vn/sbar/api/end_single_play_game/';
             const apiPlayer = 'https://dragongem.biasaigon.vn/sbar/api/get_player_info/';
             try {
                 const response = await axios.post(apiPlayer, {}, {
@@ -38,27 +34,37 @@ fs.readFile(accountList, 'utf8', async (err, data) => {
                         Authorization: `${tokenJWT}`
                     }
                 });
-                let singlePlayLevel=response.data.data.single_play_level;
-                for (let i = 0; i < 5; i++) {
-                    if (singlePlayLevel < 5) {
-                        singlePlayLevel++;
-                    }
-                    const gameData = {
-                        is_win: true,
-                        level: singlePlayLevel
-                    };
-                    try {
-                        const response = await axios.post(apiUrl, gameData, {
-                            headers: {
-                                Authorization: `${tokenJWT}`
-                            }
-                        });
-                        console.log(response.data);
-                    } catch (error) {
-                        console.error(`Gửi kết quả trò chơi thất bại cho tài khoản ${accountId}:`, error.response.data);
+                let single_play_level=response.data.data.single_play_level;
+                let turn_of_single_play=response.data.data.turn_of_single_play;
+                if (turn_of_single_play !== 0){
+                    for (let i = 0; i < 5; i++) {
+                        if (single_play_level < 5) {
+                            single_play_level++;
+                        }
+                        const gameData = {
+                            is_win: true,
+                            level: single_play_level
+                        };
+                        try {
+                            const response = await axios.post(apiGame, gameData, {
+                                headers: {
+                                    Authorization: `${tokenJWT}`
+                                }
+                            });
+                            console.log(response.data)
+                        } catch (error) {
+                            console.error(`Kết quả trò chơi thất bại  ${accountId}:`, error.response.data);
+                        }
                     }
                 }
-
+                const accountIndex = jsonDataAccount.findIndex(acc => acc.id === accountId);
+                if (accountIndex !== -1) {
+                    jsonDataAccount[accountIndex].single_play_level = response.data.data.single_play_level;
+                    jsonDataAccount[accountIndex].turn_of_scan = response.data.data.turn_of_scan;
+                    jsonDataAccount[accountIndex].turn_of_single_play = response.data.data.turn_of_single_play;
+                    jsonDataAccount[accountIndex].turn_of_team_play = response.data.data.turn_of_team_play;
+                    jsonDataAccount[accountIndex].gems = response.data.data.gems;
+                }
             } catch (error) {
                 console.error(`Thông tin người chơi thất bại cho tài khoản ${accountId}:`, error.response.data);
             }

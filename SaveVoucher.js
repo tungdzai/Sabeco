@@ -18,11 +18,7 @@ fs.readFile(accountList, 'utf8', async (err, data) => {
             try {
                 const response = await axios.post(apiUrlLogin, credentials);
                 const token = response.data.data.token;
-                const accountIndex = jsonDataAccount.findIndex(acc => acc.id === account.id);
-                if (accountIndex !== -1) {
-                    jsonDataAccount[accountIndex].token = token;
-                    await getAndSaveVoucher(token, account.phone_number, account.id);
-                }
+                await getAndSaveVoucher(token, account.phone_number, account.id);
             } catch (error) {
                 console.error(error);
             }
@@ -41,20 +37,20 @@ fs.readFile(accountList, 'utf8', async (err, data) => {
                         Authorization: `JWT ${token}`
                     }
                 });
+
                 const rewards = response.data.data.records;
+
                 for (const reward of rewards) {
                     const slug = reward.reward.slug;
                     const voucherCode = reward.voucher;
-                    console.log(voucherCode)
                     const accountIndex = jsonDataAccount.findIndex(acc => acc.id === accountId);
                     if (accountIndex !== -1) {
                         if (slug === 'grab') {
                             jsonDataAccount[accountIndex].grab = voucherCode;
-                            console.log(`${phone_number} - Lưu voucher grab thành công: ${voucherCode}`);
+                            console.log(`${phone_number} - Voucher grab : ${voucherCode}`);
                         }
                     }
                 }
-                fs.writeFileSync(accountList, JSON.stringify(jsonDataAccount, null, 2), 'utf8');
             } catch (error) {
                 console.error(`${phone_number} - Lấy voucher thất bại:`, error.response.data);
             }
@@ -62,6 +58,7 @@ fs.readFile(accountList, 'utf8', async (err, data) => {
         for (const account of jsonDataAccount) {
             await login(account);
         }
+        fs.writeFileSync(accountList, JSON.stringify(jsonDataAccount, null, 2), 'utf8');
     } catch (error) {
         console.error(error);
     }
